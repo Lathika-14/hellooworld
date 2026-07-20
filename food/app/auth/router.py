@@ -15,7 +15,13 @@ from app.auth.service import (
     change_password,
 )
 
-from app.auth.dependencies import get_current_user
+from app.auth.dependencies import (
+    get_current_user,
+    require_super_admin,
+    require_restaurant_admin,
+    require_delivery_agent,
+    require_customer,
+)
 
 from app.models.user import User
 
@@ -25,6 +31,8 @@ router = APIRouter(
 )
 
 
+# ---------------------- Register ---------------------- #
+
 @router.post("/register", status_code=201)
 def register(
     request: RegisterRequest,
@@ -33,6 +41,8 @@ def register(
     return register_user(db, request)
 
 
+# ---------------------- Login ---------------------- #
+
 @router.post("/login")
 def login(
     request: LoginRequest,
@@ -40,6 +50,8 @@ def login(
 ):
     return login_user(db, request)
 
+
+# ---------------------- Current User ---------------------- #
 
 @router.get("/me")
 def get_me(
@@ -55,6 +67,8 @@ def get_me(
     }
 
 
+# ---------------------- Change Password ---------------------- #
+
 @router.patch("/change-password")
 def change_user_password(
     request: ChangePasswordRequest,
@@ -66,3 +80,60 @@ def change_user_password(
         current_user,
         request,
     )
+
+
+# ==========================================================
+# TEMPORARY AUTHORIZATION TEST ENDPOINTS
+# (Remove these after testing)
+# ==========================================================
+
+# ---------------------- Super Admin ---------------------- #
+
+@router.get("/admin-dashboard")
+def admin_dashboard(
+    current_user: User = Depends(require_super_admin()),
+):
+    return {
+        "message": "Welcome Super Admin",
+        "email": current_user.email,
+        "role": current_user.role.role_name,
+    }
+
+
+# ---------------------- Restaurant Admin ---------------------- #
+
+@router.get("/restaurant-dashboard")
+def restaurant_dashboard(
+    current_user: User = Depends(require_restaurant_admin()),
+):
+    return {
+        "message": "Welcome Restaurant Admin",
+        "email": current_user.email,
+        "role": current_user.role.role_name,
+    }
+
+
+# ---------------------- Delivery Agent ---------------------- #
+
+@router.get("/delivery-dashboard")
+def delivery_dashboard(
+    current_user: User = Depends(require_delivery_agent()),
+):
+    return {
+        "message": "Welcome Delivery Agent",
+        "email": current_user.email,
+        "role": current_user.role.role_name,
+    }
+
+
+# ---------------------- Customer ---------------------- #
+
+@router.get("/customer-dashboard")
+def customer_dashboard(
+    current_user: User = Depends(require_customer()),
+):
+    return {
+        "message": "Welcome Customer",
+        "email": current_user.email,
+        "role": current_user.role.role_name,
+    }
